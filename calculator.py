@@ -1,25 +1,5 @@
-def sum(*args):
-    ans = args[0]
-    for _ in args[1:]:
-        ans += _
-    return ans
-
-
-def sub(*args):
-    ans = args[0]
-    for _ in args[1:]:
-        ans -= _
-    return ans
-
-
-def def_op(string):
-    op = string[0]
-    for i in string[1:]:
-        if (i == op) & (op == '+' or op == '-'):
-            op = '+'
-        else:
-            op = '-'
-    return op
+dict_vars = {}
+ans = 0
 
 
 def user_command():
@@ -32,6 +12,40 @@ def user_command():
             op.remove('')
     finally:
         return op
+
+
+def check_var(var, assign=False):
+    if any(map(str.isdigit, var)):
+        if assign:
+            print('Invalid assignment')
+        else:
+            print('Invalid identifier.')
+        return False
+    return True
+
+
+def check_key(key, assign=False):
+    if key not in dict_vars:
+        if assign:
+            print('Invalid assignment')
+        else:
+            print('Unknown variable')
+        return False
+    return True
+
+
+def lit_eval(entrance):
+    ev = ''
+    entrance = ''.join(entrance)
+    print(entrance)
+    for i in entrance:
+        if i in '+-':
+            ev += i
+        elif check_var(i):
+            if check_key(i):
+                ev += str(dict_vars[i])
+    print(ev)
+    print('done')
 
 
 while True:
@@ -48,25 +62,30 @@ while True:
         continue
 
     try:
-        ans = int(entrance[0])
-    except ValueError:
-        if entrance[0][0] == '/':
-            print('Unknown command')
+        ans = eval(' '.join(entrance))
+        print(ans)
+    except Exception as e:
+        entrance = ''.join(entrance)
+
+        if type(e) == ZeroDivisionError:
+            print(e)
+
+        elif type(e) == SyntaxError:
+            var, val = entrance.split('=', 1)
+            if check_var(var):
+                if val.isdigit():
+                    dict_vars[var] = int(val)
+                else:
+                    if check_var(val, assign=True):
+                        if check_key(val):
+                            dict_vars[var] = val
+
+        elif type(e) == NameError and ('+' not in entrance or '-' not in
+                                       entrance):
+            if check_var(entrance[0]):
+                if check_key(entrance[0]):
+                    print(dict_vars[entrance[0]])
         else:
-            print('Invalid expression')
-        continue
-
-    if len(entrance) == 2:
-        print('Invalid expression')
-        continue
-
-    for p in range(1, len(entrance) - 1, 2):
-
-        if entrance[p][0] == '+' or '-':
-            op = def_op(entrance[p])
-        if op == '+':
-            ans += int(entrance[p+1])
-        if op == '-':
-            ans -= int(entrance[p+1])
-    print(ans)
+            print('merda')
+            lit_eval(entrance)
 print('Bye!')

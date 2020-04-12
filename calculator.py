@@ -54,23 +54,28 @@ while True:
     if entrance[0] == '':
         continue
 
-    if entrance[0] == '/exit':
-        break
+    if entrance[0][0] == '/':
+        if entrance[0] == '/exit':
+            break
 
-    if entrance[0] == '/help':
-        print('The program calculates the sum and subtraction of numbers')
-        continue
+        if entrance[0] == '/help':
+            print('The program calculates the sum and subtraction of numbers')
+            continue
+
+        else:
+            print('Unknown command')
+            continue
 
     try:
         ans = eval(' '.join(entrance))
         print(ans)
     except Exception as e:
-        entrance = ''.join(entrance)
 
         if type(e) == ZeroDivisionError:
             print(e)
 
         elif type(e) == SyntaxError:
+            entrance = ''.join(entrance)
             var, val = entrance.split('=', 1)
             if check_var(var):
                 if val.isdigit():
@@ -78,14 +83,34 @@ while True:
                 else:
                     if check_var(val, assign=True):
                         if check_key(val):
-                            dict_vars[var] = val
+                            dict_vars[var] = dict_vars[val]
 
-        elif type(e) == NameError and ('+' not in entrance or '-' not in
-                                       entrance):
-            if check_var(entrance[0]):
+        elif type(e) == NameError:
+
+            if '+' in entrance or '-' in entrance:
+                ans = 0
+                if entrance[0].isdigit():
+                    ans = int(entrance[0])
+                elif check_key(entrance[0]):
+                    ans = dict_vars[entrance[0]]
+
+                op = ''
+
+                for i in entrance[1:]:
+                    if i == '+' or i == '-':
+                        op = i
+                        continue
+                    if i.isdigit():
+                        ans = eval(f'{ans} {op} {i}')
+                    elif check_key(i):
+                        ans = eval(f'{ans} {op} {dict_vars[i]}')
+                print(ans)
+
+            else:
                 if check_key(entrance[0]):
                     print(dict_vars[entrance[0]])
+
         else:
-            print('merda')
-            lit_eval(entrance)
+            print('here')
+            print(dict_vars[entrance])
 print('Bye!')

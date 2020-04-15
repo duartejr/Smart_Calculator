@@ -19,7 +19,7 @@ def check_var(var, assign=False):
         if assign:
             print('Invalid assignment')
         else:
-            print('Invalid identifier.')
+            print('Invalid identifier')
         return False
     return True
 
@@ -37,7 +37,6 @@ def check_key(key, assign=False):
 def lit_eval(entrance):
     ev = ''
     entrance = ''.join(entrance)
-    print(entrance)
     for i in entrance:
         if i in '+-':
             ev += i
@@ -45,7 +44,6 @@ def lit_eval(entrance):
             if check_key(i):
                 ev += str(dict_vars[i])
     print(ev)
-    print('done')
 
 
 while True:
@@ -67,50 +65,38 @@ while True:
             continue
 
     try:
-        ans = eval(' '.join(entrance))
+        ans = int(eval(' '.join(entrance).replace('^', '**')))
         print(ans)
     except Exception as e:
-
         if type(e) == ZeroDivisionError:
             print(e)
 
         elif type(e) == SyntaxError:
-            entrance = ''.join(entrance)
-            var, val = entrance.split('=', 1)
-            if check_var(var):
-                if val.isdigit():
-                    dict_vars[var] = int(val)
-                else:
-                    if check_var(val, assign=True):
-                        if check_key(val):
-                            dict_vars[var] = dict_vars[val]
+            try:
+                entrance = ''.join(entrance)
+                var, val = entrance.split('=', 1)
+                if check_var(var):
+                    if val.isdigit():
+                        dict_vars[var] = int(val)
+                    else:
+                        if check_var(val, assign=True):
+                            if check_key(val):
+                                dict_vars[var] = dict_vars[val]
+            except ValueError:
+                print('Invalid expression')
 
         elif type(e) == NameError:
+            entrance = ''.join(entrance).replace('^', '**')
+            for k in entrance:
+                if k in dict_vars:
+                    entrance = entrance.replace(k, str(dict_vars[k]))
 
-            if '+' in entrance or '-' in entrance:
-                ans = 0
-                if entrance[0].isdigit():
-                    ans = int(entrance[0])
-                elif check_key(entrance[0]):
-                    ans = dict_vars[entrance[0]]
-
-                op = ''
-
-                for i in entrance[1:]:
-                    if i == '+' or i == '-':
-                        op = i
-                        continue
-                    if i.isdigit():
-                        ans = eval(f'{ans} {op} {i}')
-                    elif check_key(i):
-                        ans = eval(f'{ans} {op} {dict_vars[i]}')
-                print(ans)
-
-            else:
+            try:
+                print(int(eval(entrance)))
+            except Exception as e:
                 if check_key(entrance[0]):
                     print(dict_vars[entrance[0]])
-
         else:
-            print('here')
             print(dict_vars[entrance])
+
 print('Bye!')

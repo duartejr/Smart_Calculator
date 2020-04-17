@@ -8,14 +8,14 @@ def user_command():
     except ValueError:
         print('Invalid expression')
     else:
-        while len(op) > 1 and '' in op:
-            op.remove('')
-    finally:
-        return op
+        if len(op) > 1:
+            op = list(filter(lambda x: x != '', op))
+
+    return op
 
 
-def check_var(var, assign=False):
-    if any(map(str.isdigit, var)):
+def check_var(var_in, assign=False):
+    if any(map(str.isdigit, var_in)):
         if assign:
             print('Invalid assignment')
         else:
@@ -34,16 +34,54 @@ def check_key(key, assign=False):
     return True
 
 
-def lit_eval(entrance):
+def lit_eval(in_eval):
     ev = ''
-    entrance = ''.join(entrance)
-    for i in entrance:
+    in_eval = ''.join(in_eval)
+    for i in in_eval:
         if i in '+-':
             ev += i
         elif check_var(i):
             if check_key(i):
                 ev += str(dict_vars[i])
     print(ev)
+
+
+def exc_expression(exp):
+    exp = ''.join(exp)
+    var_exp, val_exp = exp.split('=', 1)
+    if check_var(var_exp):
+        if val_exp.isdigit():
+            dict_vars[var_exp] = int(val_exp)
+        else:
+            if check_var(val_exp, assign=True):
+                if check_key(val_exp):
+                    dict_vars[var_exp] = dict_vars[val_exp]
+
+
+def refactor_expression(exp):
+    exp = ''.join(exp).replace('^', '**')
+    for key in exp:
+        if key in dict_vars:
+            exp = exp.replace(key, str(dict_vars[key]))
+    return exp
+
+
+def process_error(in_error, error):
+    if isinstance(error, ZeroDivisionError):
+        print(error)
+
+    elif isinstance(error, SyntaxError):
+        try:
+            exc_expression(in_error)
+        except ValueError:
+            print('Invalid expression')
+
+    elif isinstance(error, NameError):
+        in_error = refactor_expression(in_error)
+        print(int(eval(in_error)))
+
+    else:
+        print(dict_vars[in_error])
 
 
 while True:
@@ -60,43 +98,13 @@ while True:
             print('The program calculates the sum and subtraction of numbers')
             continue
 
-        else:
-            print('Unknown command')
-            continue
+        print('Unknown command')
+        continue
 
     try:
         ans = int(eval(' '.join(entrance).replace('^', '**')))
         print(ans)
     except Exception as e:
-        if type(e) == ZeroDivisionError:
-            print(e)
-
-        elif type(e) == SyntaxError:
-            try:
-                entrance = ''.join(entrance)
-                var, val = entrance.split('=', 1)
-                if check_var(var):
-                    if val.isdigit():
-                        dict_vars[var] = int(val)
-                    else:
-                        if check_var(val, assign=True):
-                            if check_key(val):
-                                dict_vars[var] = dict_vars[val]
-            except ValueError:
-                print('Invalid expression')
-
-        elif type(e) == NameError:
-            entrance = ''.join(entrance).replace('^', '**')
-            for k in entrance:
-                if k in dict_vars:
-                    entrance = entrance.replace(k, str(dict_vars[k]))
-
-            try:
-                print(int(eval(entrance)))
-            except Exception as e:
-                if check_key(entrance[0]):
-                    print(dict_vars[entrance[0]])
-        else:
-            print(dict_vars[entrance])
+        process_error(entrance, e)
 
 print('Bye!')
